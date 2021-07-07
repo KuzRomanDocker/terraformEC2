@@ -5,7 +5,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "dev-project-alfa-terraform-state"
-    key    = "${terraform.workspace}/terraform.tfstate"
+    key    = "terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -20,7 +20,7 @@ resource "aws_instance" "WebServer" {
     cars   = ["Volvo", "BMW", "Mercedes", "AUDI", "Ferrari", "Bugatti"]
   })
   tags = {
-    Name  = "Project Alfa  - ${terraform.workspace}"
+    Name  = "WebServer Project Alfa  - ${terraform.workspace}"
     Owner = "Roman"
   }
 }
@@ -39,7 +39,21 @@ sudo systemctl start httpd
 sudo systemctl enable httpd
 EOF
   tags = {
-    Name  = "Project Alfa  - ${terraform.workspace}"
+    Name  = "APPServer Project Alfa  - ${terraform.workspace}"
+    Owner = "Roman"
+  }
+  depends_on = [aws_instance.WebServer]
+}
+
+resource "aws_instance" "Ansible" {
+  ami                    = data.aws_ami.latest_amazon_linux.id
+  instance_type          = var.instance_type
+  vpc_security_group_ids = [aws_security_group.my_servers.id]
+  provisioner "local-exec" {
+    command = "ansible-playbook -u ec2-user -i '${aws_instance.Ansible.public_dns}' main.yml"
+  }
+  tags = {
+    Name  = "Ansible Project Alfa  - ${terraform.workspace}"
     Owner = "Roman"
   }
   depends_on = [aws_instance.WebServer]
