@@ -3,6 +3,19 @@ variable "instance_type" {
   type        = string
   default     = "t2.nano"
 }
+
+variable "pb_key" {
+  description = "Public key"
+  type        = string
+  default     = "~/pb_key.pub"
+}
+
+variable "pr_key" {
+  description = "Private key"
+  type        = string
+  default     = "~/pb_key.pem"
+}
+
 variable "allow_ports" {
   description = "List of Ports to open for server"
   type        = list(any)

@@ -10,6 +10,11 @@ terraform {
   }
 }
 
+resource "aws_key_pair" "key" {
+  key_name   = "pb_key"
+  public_key = file(var.pb_key)
+}
+
 resource "aws_instance" "WebServer" {
   ami                    = data.aws_ami.latest_amazon_linux.id
   instance_type          = var.instance_type
@@ -45,18 +50,28 @@ EOF
   depends_on = [aws_instance.WebServer]
 }
 
-resource "aws_instance" "Ansible" {
+resource "aws_instance" "Database" {
   ami                    = data.aws_ami.latest_amazon_linux.id
   instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.my_servers.id]
+  key_name               = aws_key_pair.key.key_name
+  provisioner "remote-exec" {
+    inline = ["echo 'Starting Update Database'"]
+
+    connection {
+      type        = "ssh"
+      host        = self.public_ip
+      user        = "ec2-user"
+      private_key = file(var.pr_key)
+    }
+  }
   provisioner "local-exec" {
-    command = "ansible-playbook -u ec2-user -i '${aws_instance.Ansible.public_dns}' main.yml"
+    command = "ansible-playbook -u ec2-user -i '${self.public_ip}' Playbook.yml"
   }
   tags = {
-    Name  = "Ansible Project Alfa  - ${terraform.workspace}"
+    Name  = "Database Project Alfa - ${terraform.workspace}"
     Owner = "Roman"
   }
-  depends_on = [aws_instance.WebServer]
 }
 
 resource "aws_security_group" "my_servers" {

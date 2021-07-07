@@ -1,0 +1,8 @@
+---
+- name: Update Databases
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Update Databases
+    shell: echo "Updating Dabasases....." > /home/ec2-user/Status.log
