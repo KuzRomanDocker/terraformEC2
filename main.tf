@@ -5,7 +5,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "dev-project-alfa-terraform-state"
-    key    = "dev/terraform.tfstate"
+    key    = "${terraform.workspace}/terraform.tfstate"
     region = "us-east-1"
   }
 }
@@ -20,7 +20,7 @@ resource "aws_instance" "WebServer" {
     cars   = ["Volvo", "BMW", "Mercedes", "AUDI", "Ferrari", "Bugatti"]
   })
   tags = {
-    Name  = "Project Alfa"
+    Name  = "Project Alfa  - ${terraform.workspace}"
     Owner = "Roman"
   }
 }
@@ -38,12 +38,15 @@ echo "<h2>WebServer with IP: $myip</h2><br>APP Server" > /var/www/html/index.htm
 sudo systemctl start httpd
 sudo systemctl enable httpd
 EOF
-  tags                   = merge(var.common-tags, { Name = "${var.common-tags["Envrironment"]} Alfa" })
-  depends_on             = [aws_instance.WebServer]
+  tags = {
+    Name  = "Project Alfa  - ${terraform.workspace}"
+    Owner = "Roman"
+  }
+  depends_on = [aws_instance.WebServer]
 }
 
 resource "aws_security_group" "my_servers" {
-  name = "My Security Group"
+  name = "My Security Group - ${terraform.workspace}"
   dynamic "ingress" {
     for_each = var.allow_ports
     content {
@@ -59,5 +62,8 @@ resource "aws_security_group" "my_servers" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = merge(var.common-tags, { Name = "${var.common-tags["Envrironment"]} Server IP" })
+  tags = {
+    Name  = "Project Alfa  - ${terraform.workspace}"
+    Owner = "Roman"
+  }
 }
