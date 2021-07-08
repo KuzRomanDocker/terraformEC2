@@ -66,7 +66,7 @@ resource "aws_instance" "Database" {
     }
   }
   provisioner "local-exec" {
-    command = "ansible-playbook -u ec2-user -i '${self.public_ip}' Playbook.yml"
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ${var.pr_key} -e 'pub_key=${var.pb_key}' Playbook.yml"
   }
   tags = {
     Name  = "Database Project Alfa - ${terraform.workspace}"
